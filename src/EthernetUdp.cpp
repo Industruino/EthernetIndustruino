@@ -212,7 +212,12 @@ void EthernetUDP::flush()
 
   while (_remaining)
   {
-    read();
+    if (read() < 0) {
+      // In fact, this did fail, when _remaining > 0 and recv in read fails,
+      // So take that into account. When recv in read fails (that is, has
+      // nothing to read), simply reset _remaining.
+      _remaining = 0;
+    }
   }
 }
 

@@ -290,7 +290,15 @@ uint8_t DhcpClass::parseDHCPResponse(unsigned long responseTimeout, uint32_t& tr
 
         while (_dhcpUdpSocket.available() > 0) 
         {
-            switch (_dhcpUdpSocket.read()) 
+            int readByte = _dhcpUdpSocket.read();
+
+            // Udp read returned -1, no data available
+            // See EthernetUdp::flsh for background info
+            if (readByte < 0) {
+                break;
+            }
+
+            switch (readByte)
             {
                 case endOption :
                     break;
@@ -367,7 +375,10 @@ uint8_t DhcpClass::parseDHCPResponse(unsigned long responseTimeout, uint32_t& tr
                     // Skip over the rest of this option
                     while (opt_len--)
                     {
-                        _dhcpUdpSocket.read();
+                        readByte = _dhcpUdpSocket.read();
+                        if (readByte < 0) {
+                            break;
+                        }
                     }
                     break;
             }
